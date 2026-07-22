@@ -1,0 +1,109 @@
+// ==========================================================
+// Prisma Schema - Employee Management System (EMS)
+// Data Access Layer definition (SQLite adaptation)
+// ==========================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ------------------------------------------------------------
+// USERS — application logins (Admin / HR staff who use the EMS)
+// ------------------------------------------------------------
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String // bcrypt hash, never store plain text
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+// ------------------------------------------------------------
+// BATCHES — a cohort of internees (e.g. "Batch 12 - Fall 2026")
+// ------------------------------------------------------------
+model Batch {
+  id          Int      @id @default(autoincrement())
+  name        String
+  domain      String // e.g. "Web Development", "Data Science"
+  startDate   DateTime
+  endDate     DateTime
+  status      String   @default("PENDING")
+  description String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  internees Internee[]
+  tenures   Tenure[]
+
+  @@map("batches")
+}
+
+// ------------------------------------------------------------
+// INTERNEES — the trainees themselves
+// ------------------------------------------------------------
+model Internee {
+  id          Int      @id @default(autoincrement())
+  fullName    String
+  email       String   @unique
+  phone       String
+  cnic        String   @unique
+  address     String?
+  status      String   @default("ACTIVE")
+  batchId     Int?
+  batch       Batch?   @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenures Tenure[]
+  assets  Asset[]
+
+  @@map("internees")
+}
+
+// ------------------------------------------------------------
+// TENURES — links an internee to a batch for a specific date range
+// ------------------------------------------------------------
+model Tenure {
+  id         Int          @id @default(autoincrement())
+  internee   Internee     @relation(fields: [internConId], references: [id], onDelete: Cascade)
+  internConId Int
+  batch      Batch        @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  batchId    Int
+  startDate  DateTime
+  endDate    DateTime
+  status     String       @default("ACTIVE")
+  remarks    String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@map("tenures")
+}
+
+// ------------------------------------------------------------
+// ASSETS — company equipment issued to internees
+// ------------------------------------------------------------
+model Asset {
+  id           Int         @id @default(autoincrement())
+  assetTag     String      @unique // e.g. "LAP-0042"
+  name         String // e.g. "Dell Latitude 5420"
+  type         String
+  status       String      @default("AVAILABLE")
+  internee     Internee?   @relation(fields: [interneeId], references: [id], onDelete: SetNull)
+  interneeId   Int?
+  issuedDate   DateTime?
+  returnedDate DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("assets")
+}
