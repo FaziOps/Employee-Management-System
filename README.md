@@ -18,7 +18,7 @@ Request flow: `Next.js page → axios call → Express route → middleware (aut
 - Dashboard with batch stats and recent batches table
 - Batches: list (search/filter/pagination), create, detail view (with internees in that batch)
 - Internees: list (search/pagination), create (two-step form: Personal Info → Tenure Info, which creates the internee then links them to a batch via a tenure record — covering "Create Internee-Tenure" and "Create Internee-Tenure/batch")
-- Assets: list + inline create form, assign to internee, mark as returned
+- Assets: list + inline create form, assign to internee, mark as returned.
 - Full CRUD REST API for batches, internees, tenures, assets
 - Centralized error handling, input validation, Prisma error translation (duplicate/foreign-key errors → clean HTTP responses)
 
